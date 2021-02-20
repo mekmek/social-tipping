@@ -23,40 +23,37 @@
 </template>
 
 <script>
-import firebase from 'firebase'
-
-const firebaseConfig = {
-  apiKey: "AIzaSyClby3on7h4LCprQCpHdUzfN4vLgoMkXGQ",
-  authDomain: "social-tipping-app.firebaseapp.com",
-  projectId: "social-tipping-app",
-  storageBucket: "social-tipping-app.appspot.com",
-  messagingSenderId: "528773370919",
-  appId: "1:528773370919:web:84bda9ba9e50b6e7f8aa02"
-};
-
-firebase.initializeApp(firebaseConfig);
-
 export default {
   name: 'SignUp',
-  data() {
-    return {
-      userName: '',
-      email: '',
-      password: '',
-    };
+  computed: {
+    userName: {
+      get() {
+        return this.$store.getters.userName;
+      },
+      set(val) {
+        this.$store.commit('updateUserName', val);
+      }
+    },
+    email: {
+      get() {
+        return this.$store.getters.email;
+      },
+      set(val) {
+        this.$store.commit('updateEmail', val);
+      }
+    },
+    password: {
+      get() {
+        return this.$store.getters.password;
+      },
+      set(val) {
+        this.$store.commit('updatePassword', val);
+      }
+    }
   },
   methods: {
     signUp() {
-      firebase.auth().createUserWithEmailAndPassword(this.email, this.password)
-        .then(() => {
-          alert('登録しました');
-          this.userName = '';
-          this.email = '';
-          this.password = '';
-        })
-        .catch(error => {
-          alert(error.code + ' ' + error.message);
-        });
+      this.$store.dispatch('signUp');
     }
   }
 }
