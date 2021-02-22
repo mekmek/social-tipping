@@ -45,6 +45,17 @@ export default new Vuex.Store({
         .catch(error => {
           console.log(error.code + ' ' + error.message);  // 暫定処理
         });
+    },
+    login(context) {
+      const email = context.state.email;
+      const password = context.state.password;
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(() => {
+          router.push('/user');   // 暫定処理
+        })
+        .catch(error => {
+          console.log(error.code + ' ' + error.message);  // 暫定処理
+        });
     }
   }
 })
