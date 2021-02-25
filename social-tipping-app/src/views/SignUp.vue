@@ -25,35 +25,21 @@
 <script>
 export default {
   name: 'SignUp',
-  computed: {
-    userName: {
-      get() {
-        return this.$store.getters.userName;
-      },
-      set(val) {
-        this.$store.commit('updateUserName', val);
-      }
-    },
-    email: {
-      get() {
-        return this.$store.getters.email;
-      },
-      set(val) {
-        this.$store.commit('updateEmail', val);
-      }
-    },
-    password: {
-      get() {
-        return this.$store.getters.password;
-      },
-      set(val) {
-        this.$store.commit('updatePassword', val);
-      }
+  data() {
+    return {
+      userName: '',
+      email: '',
+      password: ''
     }
   },
   methods: {
     signUp() {
-      this.$store.dispatch('signUp');
+      const input = {
+        userName: this.userName,
+        email: this.email,
+        password: this.password
+      };
+      this.$store.dispatch('signUp', input);
     }
   }
 }

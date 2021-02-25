@@ -5,56 +5,78 @@ import firebaseConfig from '../../firebase.config'
 
 Vue.use(Vuex)
 const firebase = firebaseConfig();
+const db = firebase.firestore();
 
 export default new Vuex.Store({
   state: {
-    userName: '',
-    email: '',
-    password: ''
+    userName: '',   // ユーザ名
+    balance: 0,     // 残高
+    alert: ''       // アラートメッセージ
   },
   mutations: {
     updateUserName(state, val) {
       state.userName = val;
     },
-    updateEmail(state, val) {
-      state.email = val;
+    updateBalance(state, val) {
+      state.balance = val;
     },
-    updatePassword(state, val) {
-      state.password = val;
+    updateAlert(state, val) {
+      state.alert = val;
     }
   },
   getters: {
     userName(state) {
       return state.userName;
     },
-    email(state) {
-      return state.email;
+    balance(state) {
+      return state.balance;
     },
-    password(state) {
-      return state.password;
+    alert(state) {
+      return state.alert;
     }
   },
   actions: {
-    signUp(context) {
-      const email = context.state.email;
-      const password = context.state.password;
+    signUp(context, input) {
+      const email = input.email;
+      const password = input.password;
+      const userName = input.userName;
+      
       firebase.auth().createUserWithEmailAndPassword(email, password)
-        .then(() => {
-          router.push('/user');   // 暫定処理
+        .then(resp => {
+          const user = resp.user;
+          db.collection('users').doc(user.uid).set({ balance: 0 });
+          user.updateProfile({ displayName: userName })
+          context.commit('updateBalance', 0);
+          context.commit('updateUserName', userName);
+          context.commit('updateAlert', '');
+          router.push('/dashboard');
         })
         .catch(error => {
-          console.log(error.code + ' ' + error.message);  // 暫定処理
+          context.commit('updateAlert', error.code + ' ' + error.message);
         });
     },
-    login(context) {
-      const email = context.state.email;
-      const password = context.state.password;
+    login(context, input) {
+      const email = input.email;
+      const password = input.password;
+      
       firebase.auth().signInWithEmailAndPassword(email, password)
-        .then(() => {
-          router.push('/user');   // 暫定処理
+        .then(resp => {
+          const user = resp.user;
+          console.log(user.uid);
+          db.collection('users').doc(user.uid).get()
+            .then(doc => {
+              const balance = doc.data().balance;
+              context.commit('updateBalance', balance);
+              context.commit('updateUserName', user.displayName);
+              context.commit('updateAlert', '');
+              router.push('/dashboard');
+            })
+            .catch(error => {
+              context.commit('updateAlert', error.code + ' ' + error.message);
+            })
         })
         .catch(error => {
-          console.log(error.code + ' ' + error.message);  // 暫定処理
+          context.commit('updateAlert', error.code + ' ' + error.message);
         });
     }
   }

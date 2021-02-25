@@ -1,8 +1,20 @@
 <template>
   <div id="app">
+    <Alert/>
     <router-view/>
   </div>
 </template>
+
+<script>
+import Alert from './components/Alert.vue'
+
+export default {
+  name: 'app',
+  components: {
+    Alert
+  }
+}
+</script>
 
 <style lang="scss">
 #app {

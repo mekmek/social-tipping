@@ -21,27 +21,19 @@
 <script>
 export default {
   name: 'Login',
-  computed: {
-    email: {
-      get() {
-        return this.$store.getters.email;
-      },
-      set(val) {
-        this.$store.commit('updateEmail', val);
-      }
-    },
-    password: {
-      get() {
-        return this.$store.getters.password;
-      },
-      set(val) {
-        this.$store.commit('updatePassword', val);
-      }
+  data() {
+    return {
+      email: '',
+      password: ''
     }
   },
   methods: {
     login() {
-      this.$store.dispatch('login');
+      const input = {
+        email: this.email,
+        password: this.password
+      };
+      this.$store.dispatch('login', input);
     }
   }
 }
