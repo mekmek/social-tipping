@@ -40,12 +40,20 @@ export default new Vuex.Store({
       const email = input.email;
       const password = input.password;
       const userName = input.userName;
+      let user = null;
       
       firebase.auth().createUserWithEmailAndPassword(email, password)
         .then(resp => {
-          const user = resp.user;
-          db.collection('users').doc(user.uid).set({ balance: 0 });
-          user.updateProfile({ displayName: userName })
+          user = resp.user;
+          return db.collection('users').doc(user.uid).set({
+            userName: userName,
+            balance: 0
+          });
+        })
+        .then(() => {
+          return user.updateProfile({ displayName: userName });
+        })
+        .then(() => {
           context.commit('updateBalance', 0);
           context.commit('updateUserName', userName);
           context.commit('updateAlert', '');
@@ -58,22 +66,20 @@ export default new Vuex.Store({
     login(context, input) {
       const email = input.email;
       const password = input.password;
+      let user = null;
       
       firebase.auth().signInWithEmailAndPassword(email, password)
         .then(resp => {
-          const user = resp.user;
-          console.log(user.uid);
-          db.collection('users').doc(user.uid).get()
-            .then(doc => {
-              const balance = doc.data().balance;
-              context.commit('updateBalance', balance);
-              context.commit('updateUserName', user.displayName);
-              context.commit('updateAlert', '');
-              router.push('/dashboard');
-            })
-            .catch(error => {
-              context.commit('updateAlert', error.code + ' ' + error.message);
-            })
+          user = resp.user;
+          return db.collection('users').doc(user.uid).get();
+        })
+        .then(resp => {
+          const userName = resp.data().userName;
+          const balance = resp.data().balance;
+          context.commit('updateUserName', userName);
+          context.commit('updateBalance', balance);
+          context.commit('updateAlert', '');
+          router.push('/dashboard');
         })
         .catch(error => {
           context.commit('updateAlert', error.code + ' ' + error.message);
