@@ -76,6 +76,16 @@ export default new Vuex.Store({
       } catch(e) {
         context.commit('updateAlert', e.code + ' ' + e.message)
       }
+    },
+    async logout(context) {
+      try {
+        await firebase.auth().signOut()
+        context.commit('updateBalance', 0)
+        context.commit('updateUserName', '')
+        router.push('/login')
+      } catch(e) {
+        context.commit('updateAlert', e.code + ' ' + e.message)
+      }
     }
   }
 })
