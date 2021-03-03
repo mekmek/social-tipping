@@ -36,54 +36,46 @@ export default new Vuex.Store({
     }
   },
   actions: {
-    signUp(context, input) {
-      const email = input.email;
-      const password = input.password;
-      const userName = input.userName;
-      let user = null;
+    async signUp(context, input) {
+      const email = input.email
+      const password = input.password
+      const userName = input.userName
       
-      firebase.auth().createUserWithEmailAndPassword(email, password)
-        .then(resp => {
-          user = resp.user;
-          return db.collection('users').doc(user.uid).set({
-            userName: userName,
-            balance: 0
-          });
+      try {
+        await firebase.auth().createUserWithEmailAndPassword(email, password)
+        const user = firebase.auth().currentUser
+        await db.collection('users').doc(user.uid).set({
+          userName: userName,
+          balance: 0
         })
-        .then(() => {
-          return user.updateProfile({ displayName: userName });
+        await user.updateProfile({
+          displayName: userName
         })
-        .then(() => {
-          context.commit('updateBalance', 0);
-          context.commit('updateUserName', userName);
-          context.commit('updateAlert', '');
-          router.push('/dashboard');
-        })
-        .catch(error => {
-          context.commit('updateAlert', error.code + ' ' + error.message);
-        });
+        context.commit('updateBalance', 0)
+        context.commit('updateUserName', userName)
+        context.commit('updateAlert', '')
+        router.push('/dashboard')
+      } catch(e) {
+        context.commit('updateAlert', e.code + ' ' + e.message)
+      }
     },
-    login(context, input) {
-      const email = input.email;
-      const password = input.password;
-      let user = null;
+    async login(context, input) {
+      const email = input.email
+      const password = input.password
       
-      firebase.auth().signInWithEmailAndPassword(email, password)
-        .then(resp => {
-          user = resp.user;
-          return db.collection('users').doc(user.uid).get();
-        })
-        .then(resp => {
-          const userName = resp.data().userName;
-          const balance = resp.data().balance;
-          context.commit('updateUserName', userName);
-          context.commit('updateBalance', balance);
-          context.commit('updateAlert', '');
-          router.push('/dashboard');
-        })
-        .catch(error => {
-          context.commit('updateAlert', error.code + ' ' + error.message);
-        });
+      try {
+        await firebase.auth().signInWithEmailAndPassword(email, password)
+        const user = firebase.auth().currentUser
+        const doc = await db.collection('users').doc(user.uid).get()
+        const userName = doc.data().userName
+        const balance = doc.data().balance
+        context.commit('updateUserName', userName)
+        context.commit('updateBalance', balance)
+        context.commit('updateAlert', '')
+        router.push('/dashboard')
+      } catch(e) {
+        context.commit('updateAlert', e.code + ' ' + e.message)
+      }
     }
   }
 })
