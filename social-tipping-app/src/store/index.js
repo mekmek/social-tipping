@@ -52,18 +52,20 @@ export default new Vuex.Store({
         await firebase.auth().createUserWithEmailAndPassword(email, password)
         const user = firebase.auth().currentUser
         await db.collection('users').doc(user.uid).set({
+          uid: user.uid,
           userName: userName,
-          balance: 0
+          balance: 1000
         })
         await user.updateProfile({
           displayName: userName
         })
-        context.commit('updateBalance', 0)
+        context.commit('updateBalance', 1000)
         context.commit('updateUserName', userName)
         context.commit('updateAlert', '')
         router.push('/dashboard')
       } catch(e) {
         context.commit('updateAlert', e.message)
+        router.push('/')
       }
     },
     async login(context, input) {
@@ -82,6 +84,7 @@ export default new Vuex.Store({
         router.push('/dashboard')
       } catch(e) {
         context.commit('updateAlert', e.message)
+        router.push('/login')
       }
     },
     async logout(context) {
@@ -92,6 +95,30 @@ export default new Vuex.Store({
         router.push('/login')
       } catch(e) {
         context.commit('updateAlert', e.message)
+        router.push('/dashboard')
+      }
+    },
+    async sendTip(context, tippingData) {
+      try {
+        const tip = Number(tippingData.tip)
+        const userBalance = this.getters.balance - tip
+        if (tip <= 0) {
+          throw new Error('金額は正の整数で入力してください')
+        } else if (userBalance < 0) {
+          throw new Error('残高が不足しています')
+        }
+        context.commit('updateAlert', '')
+        
+        const user = firebase.auth().currentUser
+        const toUserDoc = await db.collection('users').doc(tippingData.toUid).get()
+        const toUserBalance = toUserDoc.data().balance + tip
+        
+        await db.collection('users').doc(user.uid).update({ balance: userBalance })
+        await db.collection('users').doc(tippingData.toUid).update({ balance: toUserBalance })
+        context.commit('updateBalance', userBalance)
+      } catch(e) {
+        context.commit('updateAlert', e.message)
+        router.push('/dashboard')
       }
     },
     getUsers(context) {
