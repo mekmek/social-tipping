@@ -10,22 +10,35 @@
     </div>
     <h1 class="my-5">ユーザ一覧</h1>
     <div class="mb-5">
-      <table>
+      <table class="table table-borderless">
         <thead>
-          <th>ユーザ名</th>
+          <tr>
+            <th>ユーザ名</th>
+            <th></th>
+          </tr>
         </thead>
         <tbody>
-          <!-- ユーザリストを表示するエリア -->
+          <tr v-for="(user, idx) in usersExceptCurrentUser" :key="idx">
+            <td>{{ user.userName }}</td>
+            <td>
+              <b-button v-b-modal.show-wallet variant="primary" class="mr-2" @click="updateWallet(idx)">walletを見る</b-button>
+              <b-button variant="primary">送る</b-button>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
     <p class="mt-5"><small>Copyright &copy;2019 〇〇 Inc. All rights reserved.</small></p>
+
+    <!-- 「walletを見る」のモーダル -->
+    <b-modal id="show-wallet" hide-header ok-only ok-title="close" ok-variant="danger" footer-bg-variant="light" size="sm" centered>
+      <p class="text-center">{{ walletName }}さんの残高</p>
+      <p class="text-center m-0">{{ walletBalance }}</p>
+    </b-modal>
   </div>
 </template>
 
 <script>
-
-
 export default {
   name: 'DashBoard',
   created() {
@@ -33,7 +46,15 @@ export default {
     if (!userName) {
       this.$store.commit('updateAlert', 'ログインが必要です');
       this.$router.push('/login');
-    }   
+    }
+    
+    this.$store.dispatch('getUsers');
+  },
+  data: () => {
+    return {
+      walletName: '',
+      walletBalance: 0
+    }
   },
   computed: {
     userName() {
@@ -41,11 +62,21 @@ export default {
     },
     balance() {
       return this.$store.getters.balance;
+    },
+    users() {
+      return this.$store.getters.users;
+    },
+    usersExceptCurrentUser() {
+      return this.users.filter(u => u.userName !== this.userName);
     }
   },
   methods: {
     logout() {
       this.$store.dispatch('logout');
+    },
+    updateWallet(idx) {
+      this.walletName = this.usersExceptCurrentUser[idx].userName;
+      this.walletBalance = this.usersExceptCurrentUser[idx].balance;
     }
   }
 }
@@ -54,5 +85,13 @@ export default {
 <style scopd>
 #user-info {
   font-size: 25px;
+}
+
+table {
+  table-layout: fixed;
+}
+
+.modal-body p {
+  font-size: 23px;
 }
 </style>

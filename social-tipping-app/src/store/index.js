@@ -11,6 +11,7 @@ export default new Vuex.Store({
   state: {
     userName: '',   // ユーザ名
     balance: 0,     // 残高
+    users: [],      // firestoreのユーザ一覧
     alert: ''       // アラートメッセージ
   },
   mutations: {
@@ -19,6 +20,9 @@ export default new Vuex.Store({
     },
     updateBalance(state, val) {
       state.balance = val;
+    },
+    updateUsers(state, users) {
+      state.users = users;
     },
     updateAlert(state, val) {
       state.alert = val;
@@ -30,6 +34,9 @@ export default new Vuex.Store({
     },
     balance(state) {
       return state.balance;
+    },
+    users(state) {
+      return state.users;
     },
     alert(state) {
       return state.alert;
@@ -56,7 +63,7 @@ export default new Vuex.Store({
         context.commit('updateAlert', '')
         router.push('/dashboard')
       } catch(e) {
-        context.commit('updateAlert', e.code + ' ' + e.message)
+        context.commit('updateAlert', e.message)
       }
     },
     async login(context, input) {
@@ -74,7 +81,7 @@ export default new Vuex.Store({
         context.commit('updateAlert', '')
         router.push('/dashboard')
       } catch(e) {
-        context.commit('updateAlert', e.code + ' ' + e.message)
+        context.commit('updateAlert', e.message)
       }
     },
     async logout(context) {
@@ -84,8 +91,15 @@ export default new Vuex.Store({
         context.commit('updateUserName', '')
         router.push('/login')
       } catch(e) {
-        context.commit('updateAlert', e.code + ' ' + e.message)
+        context.commit('updateAlert', e.message)
       }
+    },
+    getUsers(context) {
+      db.collection('users').onSnapshot(s => {
+        const users = [] 
+        s.forEach(doc => users.push(doc.data()))
+        context.commit('updateUsers', users)
+      })
     }
   }
 })
