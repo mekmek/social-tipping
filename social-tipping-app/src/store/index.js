@@ -110,11 +110,17 @@ export default new Vuex.Store({
         context.commit('updateAlert', '')
         
         const user = firebase.auth().currentUser
-        const toUserDoc = await db.collection('users').doc(tippingData.toUid).get()
-        const toUserBalance = toUserDoc.data().balance + tip
+        const userDoc = db.collection('users').doc(user.uid)
+        const toUserDoc = db.collection('users').doc(tippingData.toUid)
+        const toUserDocGet = await toUserDoc.get()
+        const toUserBalance = toUserDocGet.data().balance + tip
         
-        await db.collection('users').doc(user.uid).update({ balance: userBalance })
-        await db.collection('users').doc(tippingData.toUid).update({ balance: toUserBalance })
+        await db.runTransaction(async transaction => {
+          await transaction.get(userDoc)
+          await transaction.get(toUserDoc)
+          transaction.update(userDoc, { balance: userBalance })
+          transaction.update(toUserDoc, { balance: toUserBalance })
+        })
         context.commit('updateBalance', userBalance)
       } catch(e) {
         context.commit('updateAlert', e.message)
