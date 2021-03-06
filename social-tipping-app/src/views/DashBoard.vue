@@ -22,7 +22,7 @@
             <td>{{ user.userName }}</td>
             <td>
               <b-button v-b-modal.show-wallet variant="primary" class="mr-2" @click="updateWallet(idx)">walletを見る</b-button>
-              <b-button variant="primary">送る</b-button>
+              <b-button v-b-modal.send-tip variant="primary" @click="setToUid(user.uid)">送る</b-button>
             </td>
           </tr>
         </tbody>
@@ -31,9 +31,36 @@
     <p class="mt-5"><small>Copyright &copy;2019 〇〇 Inc. All rights reserved.</small></p>
 
     <!-- 「walletを見る」のモーダル -->
-    <b-modal id="show-wallet" hide-header ok-only ok-title="close" ok-variant="danger" footer-bg-variant="light" size="sm" centered>
+    <b-modal
+      id="show-wallet"
+      hide-header
+      ok-only
+      ok-title="close"
+      ok-variant="danger"
+      footer-bg-variant="light"
+      size="sm"
+      centered
+    >
       <p class="text-center">{{ walletName }}さんの残高</p>
       <p class="text-center m-0">{{ walletBalance }}</p>
+    </b-modal>
+
+    <!-- 「送る」のモーダル -->
+    <b-modal
+      id="send-tip"
+      hide-header
+      ok-only
+      ok-title="送信"
+      ok-variant="danger"
+      footer-bg-variant="light"
+      size="sm"
+      centered
+      @show="resetTip"
+      @ok="sendTip"
+    >
+      <p class="text-center">あなたの残高：{{ balance }}</p>
+      <p class="text-center">送る金額</p>
+      <input type="number" class="form-control" v-model="tip">
     </b-modal>
   </div>
 </template>
@@ -53,7 +80,9 @@ export default {
   data: () => {
     return {
       walletName: '',
-      walletBalance: 0
+      walletBalance: 0,
+      tip: null,
+      toUid: null
     }
   },
   computed: {
@@ -77,12 +106,24 @@ export default {
     updateWallet(idx) {
       this.walletName = this.usersExceptCurrentUser[idx].userName;
       this.walletBalance = this.usersExceptCurrentUser[idx].balance;
+    },
+    sendTip() {
+      this.$store.dispatch('sendTip', {
+        toUid: this.toUid,
+        tip: this.tip
+      });
+    },
+    resetTip() {
+      this.tip = null;
+    },
+    setToUid(uid) {
+      this.toUid = uid;
     }
   }
 }
 </script>
 
-<style scopd>
+<style scopd lang="scss">
 #user-info {
   font-size: 25px;
 }
@@ -91,7 +132,16 @@ table {
   table-layout: fixed;
 }
 
-.modal-body p {
-  font-size: 23px;
+.modal-body {
+  p {
+    font-size: 23px;
+  }
+  input[type="number"] {
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
 }
 </style>
